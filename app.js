@@ -6,13 +6,7 @@ const internalIp = require("internal-ip");
 const express = require("express");
 const app = express();
 
-const {
-  BROKER_IP,
-  BROKER_PORT,
-  BROKER_QUEUE,
-  HOST_PORT,
-  WATCH_FOLDER,
-} = process.env;
+const { BROKER_IP, BROKER_PORT, BROKER_QUEUE, WATCH_FOLDER } = process.env;
 
 app.use(express.static(path.join(__dirname, "..", WATCH_FOLDER)));
 
@@ -107,6 +101,6 @@ client.connect(
   }
 );
 
-app.listen(HOST_PORT, () => {
-  console.log(`server is running on ${HOST_PORT}`);
+app.listen(80, () => {
+  console.log(`server is running on 80`);
 });
