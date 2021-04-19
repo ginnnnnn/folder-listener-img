@@ -16,13 +16,9 @@ function bail(err) {
 }
 
 // Publisher
-function publisher(conn, msg) {
-  conn.createChannel(on_open);
-  function on_open(err, ch) {
-    if (err != null) bail(err);
-    ch.assertQueue(BROKER_QUEUE);
-    ch.sendToQueue(BROKER_QUEUE, Buffer.from(JSON.stringify(msg)));
-  }
+function publisher(ch, msg) {
+  ch.assertQueue(BROKER_QUEUE);
+  ch.sendToQueue(BROKER_QUEUE, Buffer.from(JSON.stringify(msg)));
 }
 function formatTofolderPath(eventPath) {
   let relativePath = eventPath.split(
@@ -41,6 +37,7 @@ client.connect(
   async function (err, conn) {
     if (err != null) bail(err);
     const ip = internalIp.v4.sync();
+    const channel = await conn.createChannel();
     // One-liner for current directory
     chokidar
       .watch(path.join(__dirname, "..", WATCH_FOLDER))
@@ -51,7 +48,7 @@ client.connect(
           folderPath,
           origin: ip,
         };
-        publisher(conn, msg);
+        publisher(channel, msg);
       })
       .on("unlinkDir", (eventPath) => {
         let folderPath = formatTofolderPath(eventPath);
@@ -60,7 +57,7 @@ client.connect(
           folderPath,
           origin: ip,
         };
-        publisher(conn, msg);
+        publisher(channel, msg);
       })
       .on("add", (eventPath) => {
         let relativePath = formatTofolderPath(eventPath);
@@ -78,7 +75,7 @@ client.connect(
         if (fileType !== "jpeg" && fileType !== "jpg" && fileType !== "png") {
           return;
         }
-        publisher(conn, msg);
+        publisher(channel, msg);
       })
       .on("unlink", (eventPath) => {
         let relativePath = formatTofolderPath(eventPath);
@@ -96,7 +93,7 @@ client.connect(
         if (fileType !== "jpeg" && fileType !== "jpg" && fileType !== "png") {
           return;
         }
-        publisher(conn, msg);
+        publisher(channel, msg);
       });
   }
 );
