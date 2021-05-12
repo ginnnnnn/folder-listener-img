@@ -4,7 +4,10 @@ const path = require("path");
 const client = require("amqplib/callback_api");
 const internalIp = require("internal-ip");
 const express = require("express");
+const fs = require("fs");
 const app = express();
+const dirTree = require("directory-tree");
+const ip = internalIp.v4.sync();
 
 const { BROKER_IP, BROKER_PORT, BROKER_QUEUE, WATCH_FOLDER } = process.env;
 
@@ -31,16 +34,42 @@ function formatTofolderPath(eventPath) {
   relativePath = relativePath.slice(1);
   return relativePath;
 }
+// const dirs = [];
+// const files = [];
+
+// function parseDir(dirObject) {
+//   if (dirObject.children) {
+//     dirs.push([formatTofolderPath(dirObject.path), ip, new Date()]);
+//     dirObject.children.forEach((obj) => parseDir(obj));
+//   } else {
+//     let relativePath = formatTofolderPath(dirObject.path);
+//     const filename = relativePath.split("/")[
+//       relativePath.split("/").length - 1
+//     ];
+//     const folderPath = relativePath.split(filename)[0].slice(0, -1);
+//     files.push({ folderPath, filename, origin: ip });
+//   }
+//   return { dirs, files };
+// }
+
+//stats = fs.statSync
+// const filteredTree = dirTree(watchPath, {
+//   extensions: /\.(jpg|jpeg|png)$/,
+// });
+// const { dirs: updatedDirs, files: updatedFiles } = parseDir(filteredTree);
+// console.log(updatedDirs);
+// console.log(updatedFiles);
 
 client.connect(
   `amqp://${BROKER_IP}:${BROKER_PORT}`,
   async function (err, conn) {
     if (err != null) bail(err);
-    const ip = internalIp.v4.sync();
     const channel = await conn.createChannel();
     // One-liner for current directory
+    const watchPath = path.join(__dirname, "..", WATCH_FOLDER);
+
     chokidar
-      .watch(path.join(__dirname, "..", WATCH_FOLDER))
+      .watch(watchPath)
       .on("addDir", (eventPath) => {
         let folderPath = formatTofolderPath(eventPath);
         const msg = {

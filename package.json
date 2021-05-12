@@ -12,6 +12,7 @@
   "dependencies": {
     "amqplib": "^0.7.1",
     "chokidar": "^3.5.1",
+    "directory-tree": "^2.2.9",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "internal-ip": "^6.2.0",
